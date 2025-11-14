@@ -3,9 +3,12 @@ from google.oauth2.service_account import Credentials
 import os
 import re
 
-# Path to your service account key
-# SERVICE_ACCOUNT_FILE = "web-sracping-478111-423fe16e5196.json"
-SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+# Read service account JSON from environment variable
+SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if not SERVICE_ACCOUNT_JSON:
+    raise ValueError("❌ GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable not set")
+
+SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
 
 # Scopes required for Sheets access
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
