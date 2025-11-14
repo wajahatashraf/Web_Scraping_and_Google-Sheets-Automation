@@ -4,7 +4,8 @@ import os
 import re
 
 # Path to your service account key
-SERVICE_ACCOUNT_FILE = "web-sracping-478111-423fe16e5196.json"
+# SERVICE_ACCOUNT_FILE = "web-sracping-478111-423fe16e5196.json"
+SERVICE_ACCOUNT_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 
 # Scopes required for Sheets access
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
