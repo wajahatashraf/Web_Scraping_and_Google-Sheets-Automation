@@ -21,7 +21,7 @@ DATA_DIR = os.path.join(os.getcwd(), "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
 options = uc.ChromeOptions()
-# options.add_argument("--headless=new")
+options.add_argument("--headless=new")
 options.add_argument("--start-maximized")
 options.add_argument("--disable-blink-features=AutomationControlled")
 options.add_argument("--disable-popup-blocking")
