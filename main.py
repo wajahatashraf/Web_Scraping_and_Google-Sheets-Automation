@@ -7,6 +7,7 @@ from upload import update_google_sheets
 import threading
 import asyncio
 from flask_cors import CORS
+import subprocess
 
 app = Flask(__name__)
 CORS(app)  # allow requests from any origin
@@ -25,6 +26,8 @@ def run_workflow_sync():
     """Wrapper to run async scraper in a thread with pre/post cleanup."""
     try:
         # --- Cleanup before scraping ---
+        subprocess.run(["playwright", "install", "--with-deps"], check=True)
+
         cleanup_data_folder()
 
         print("🔄 Checking Google Sheet for new credentials...")
