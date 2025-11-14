@@ -150,12 +150,12 @@ def update_google_sheets(data_dir):
     update_body = update_terminal_sheet(sheet, spreadsheet_id, terminal_csv)
 
     # 2️⃣ DeptSalesLog
-    dept_file = os.path.join(data_dir, 'DeptSalesLog.xls')
-    update_body = update_dept_sales(sheet, spreadsheet_id, dept_file, update_body)
-
-    # 3️⃣ BillPayReport
-    bill_file = os.path.join(data_dir, 'BillPayReport.xls')
-    update_body = update_billpay_totals(sheet, spreadsheet_id, bill_file, update_body)
+    # dept_file = os.path.join(data_dir, 'DeptSalesLog.xls')
+    # update_body = update_dept_sales(sheet, spreadsheet_id, dept_file, update_body)
+    #
+    # # 3️⃣ BillPayReport
+    # bill_file = os.path.join(data_dir, 'BillPayReport.xls')
+    # update_body = update_billpay_totals(sheet, spreadsheet_id, bill_file, update_body)
 
     # 4️⃣ Batch update
     batch_update_sheet(service, spreadsheet_id, update_body)

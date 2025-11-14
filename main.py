@@ -1,18 +1,21 @@
 import os
 import shutil
+import threading
+import asyncio
+import subprocess
 from flask import Flask, jsonify
+from flask_cors import CORS
+
 from credntial import fetch_and_delete_credentials
 from columbusdata_scrape import run_scraper
 from upload import update_google_sheets
-import threading
-import asyncio
-from flask_cors import CORS
-import subprocess
 
 app = Flask(__name__)
 CORS(app)  # allow requests from any origin
 
 DATA_DIR = os.path.join(os.getcwd(), "data")
+PLAYWRIGHT_CACHE = os.path.expanduser("~/.cache/ms-playwright")
+
 
 def cleanup_data_folder():
     """Delete the data folder if exists."""
@@ -22,12 +25,25 @@ def cleanup_data_folder():
     os.makedirs(DATA_DIR, exist_ok=True)
     print(f"📂 Created fresh folder: {DATA_DIR}")
 
+
+def install_playwright_if_needed():
+    """Install only Chromium if missing to save time."""
+    chromium_path = os.path.join(PLAYWRIGHT_CACHE, "chromium")
+    if not os.path.exists(chromium_path) or not os.listdir(chromium_path):
+        print("⚠️ Chromium not found. Installing only Chromium...")
+        subprocess.run(["playwright", "install", "chromium"], check=True)
+        print("✅ Chromium installed.")
+    else:
+        print("✅ Chromium already installed. Skipping installation.")
+
+
 def run_workflow_sync():
     """Wrapper to run async scraper in a thread with pre/post cleanup."""
     try:
-        # --- Cleanup before scraping ---
-        subprocess.run(["playwright", "install", "--with-deps"], check=True)
+        # --- Install Playwright Chromium only if needed ---
+        install_playwright_if_needed()
 
+        # --- Cleanup before scraping ---
         cleanup_data_folder()
 
         print("🔄 Checking Google Sheet for new credentials...")
@@ -38,7 +54,7 @@ def run_workflow_sync():
         asyncio.run(run_scraper())
 
         print("🚀 Updating Google Sheets now...")
-        update_google_sheets('data')
+        update_google_sheets(DATA_DIR)
 
         print("✅ Workflow completed successfully.")
 
@@ -51,6 +67,7 @@ def run_workflow_sync():
             shutil.rmtree(DATA_DIR)
             print(f"🗑️ Deleted folder after workflow: {DATA_DIR}")
 
+
 @app.route('/run-scraper', methods=['GET'])
 def run_scraper_endpoint():
     """Flask endpoint to trigger the scraper and Google Sheets update."""
@@ -60,6 +77,7 @@ def run_scraper_endpoint():
         "status": "started",
         "message": "Scraper and Google Sheets update started in background"
     }), 200
+
 
 @app.route('/', methods=['GET'])
 def home():
