@@ -140,7 +140,7 @@ def batch_update_sheet(service, spreadsheet_id, update_body):
 
 # ---------------- Main function ----------------
 def update_google_sheets(data_dir):
-    spreadsheet_id = '1zJulE6Jdp90nyP9-0P90nqrY2NFcTK93ChcWoKduups'
+    spreadsheet_id = '1WO32B6cc49wri74yuRBkiGYTgvNz6ougIAOyxhG2bIk'
 
     service, sheet, spreadsheet_id = init_sheets_api(spreadsheet_id)
     update_body = []
