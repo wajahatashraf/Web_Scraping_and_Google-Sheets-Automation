@@ -2,19 +2,19 @@ import pandas as pd
 from googleapiclient.discovery import build
 from google.oauth2.service_account import Credentials
 import os
+import json
 
 # ---------------- Google Sheets Setup ----------------
-def init_sheets_api(spreadsheet_id):
-    """Initialize Google Sheets API from environment variable."""
-    service_account_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-    if not service_account_file or not os.path.exists(service_account_file):
-        raise FileNotFoundError(
-            "Service account JSON not found. "
-            "Set environment variable GOOGLE_APPLICATION_CREDENTIALS_JSON to the JSON path."
-        )
+SERVICE_ACCOUNT_JSON = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if not SERVICE_ACCOUNT_JSON:
+    raise ValueError("❌ GOOGLE_APPLICATION_CREDENTIALS_JSON environment variable not set")
 
-    scopes = ['https://www.googleapis.com/auth/spreadsheets']
-    creds = Credentials.from_service_account_file(service_account_file, scopes=scopes)
+SERVICE_ACCOUNT_INFO = json.loads(SERVICE_ACCOUNT_JSON)
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
+def init_sheets_api(spreadsheet_id):
+    """Initialize Google Sheets API from service account JSON in env variable."""
+    creds = Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO, scopes=SCOPES)
     service = build('sheets', 'v4', credentials=creds)
     sheet = service.spreadsheets()
     return service, sheet, spreadsheet_id
@@ -159,3 +159,8 @@ def update_google_sheets(data_dir):
 
     # 4️⃣ Batch update
     batch_update_sheet(service, spreadsheet_id, update_body)
+
+
+if __name__ == "__main__":
+    DATA_DIR = "./data"
+    update_google_sheets(DATA_DIR)
