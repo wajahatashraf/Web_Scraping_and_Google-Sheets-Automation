@@ -1,3 +1,5 @@
+import os
+import shutil
 from flask import Flask, jsonify
 from credntial import fetch_and_delete_credentials
 from columbusdata_scrape import run_scraper
@@ -9,9 +11,22 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # allow requests from any origin
 
+DATA_DIR = os.path.join(os.getcwd(), "data")
+
+def cleanup_data_folder():
+    """Delete the data folder if exists."""
+    if os.path.exists(DATA_DIR):
+        shutil.rmtree(DATA_DIR)
+        print(f"🗑️ Deleted existing folder: {DATA_DIR}")
+    os.makedirs(DATA_DIR, exist_ok=True)
+    print(f"📂 Created fresh folder: {DATA_DIR}")
+
 def run_workflow_sync():
-    """Wrapper to run async scraper in a thread."""
+    """Wrapper to run async scraper in a thread with pre/post cleanup."""
     try:
+        # --- Cleanup before scraping ---
+        cleanup_data_folder()
+
         print("🔄 Checking Google Sheet for new credentials...")
         fetch_and_delete_credentials()  # ensures GOOGLE_APPLICATION_CREDENTIALS_JSON is set
 
@@ -23,13 +38,19 @@ def run_workflow_sync():
         update_google_sheets('data')
 
         print("✅ Workflow completed successfully.")
+
     except Exception as e:
         print(f"❌ Error during workflow: {e}")
+
+    finally:
+        # --- Cleanup after everything ---
+        if os.path.exists(DATA_DIR):
+            shutil.rmtree(DATA_DIR)
+            print(f"🗑️ Deleted folder after workflow: {DATA_DIR}")
 
 @app.route('/run-scraper', methods=['GET'])
 def run_scraper_endpoint():
     """Flask endpoint to trigger the scraper and Google Sheets update."""
-    # Run the workflow in a separate thread so Flask response is immediate
     thread = threading.Thread(target=run_workflow_sync, daemon=True)
     thread.start()
     return jsonify({
@@ -47,5 +68,5 @@ def home():
 
 
 if __name__ == "__main__":
-    # Run Flask server on Railway
+    # Run Flask server on Railway or local
     app.run(host="0.0.0.0", port=5001, debug=True, use_reloader=False)
