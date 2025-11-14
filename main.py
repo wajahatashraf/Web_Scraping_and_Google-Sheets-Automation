@@ -26,22 +26,24 @@ def cleanup_data_folder():
     print(f"📂 Created fresh folder: {DATA_DIR}")
 
 
-def install_playwright_if_needed():
-    """Install only Chromium if missing to save time."""
-    chromium_path = os.path.join(PLAYWRIGHT_CACHE, "chromium")
-    if not os.path.exists(chromium_path) or not os.listdir(chromium_path):
-        print("⚠️ Chromium not found. Installing only Chromium...")
-        subprocess.run(["playwright", "install", "chromium"], check=True)
-        print("✅ Chromium installed.")
+def ensure_playwright_installed():
+    """Install Playwright only if Chromium not present."""
+    chromium_path = os.path.expanduser("~/.cache/ms-playwright/chromium-*")
+    import glob
+    if glob.glob(chromium_path):
+        print("✅ Chromium already installed — skipping install")
     else:
-        print("✅ Chromium already installed. Skipping installation.")
+        print("⚠️ Chromium not found — installing...")
+        subprocess.run(["playwright", "install", "--with-deps"], check=True)
+        print("✅ Chromium installed")
+
 
 
 def run_workflow_sync():
     """Wrapper to run async scraper in a thread with pre/post cleanup."""
     try:
         # --- Install Playwright Chromium only if needed ---
-        install_playwright_if_needed()
+        ensure_playwright_installed()
 
         # --- Cleanup before scraping ---
         cleanup_data_folder()
